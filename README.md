@@ -1,1 +1,1 @@
-# intel_cloud
+# Ubuntu 22.04 server
