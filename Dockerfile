@@ -1,19 +1,25 @@
-FROM debian
-RUN apt update
-RUN DEBIAN_FRONTEND=noninteractive apt install qemu-kvm *zenhei* xz-utils dbus-x11 curl firefox-esr gnome-system-monitor mate-system-monitor  git xfce4 xfce4-terminal tightvncserver wget   -y
-RUN wget https://github.com/novnc/noVNC/archive/refs/tags/v1.2.0.tar.gz
-RUN curl -LO https://proot.gitlab.io/proot/bin/proot
-RUN chmod 755 proot
-RUN mv proot /bin
-RUN tar -xvf v1.2.0.tar.gz
-RUN mkdir  $HOME/.vnc
-RUN echo 'luo' | vncpasswd -f > $HOME/.vnc/passwd
-RUN chmod 600 $HOME/.vnc/passwd
-RUN echo 'whoami ' >>/luo.sh
-RUN echo 'cd ' >>/luo.sh
-RUN echo "su -l -c  'vncserver :2000 -geometry 1280x800' "  >>/luo.sh
-RUN echo 'cd /noVNC-1.2.0' >>/luo.sh
-RUN echo './utils/launch.sh  --vnc localhost:7900 --listen 8900 ' >>/luo.sh
-RUN chmod 755 /luo.sh
-EXPOSE 8900
-CMD  /luo.sh
+# 使用 Ubuntu 22.04 镜像作为基础镜像
+FROM ubuntu:22.04
+
+# 修改 root 账号的密码为 root
+RUN echo 'root:root' | chpasswd
+
+# 执行 apt 更新并安装 net-tools 和 openssh-server
+RUN apt update && \
+    apt install -y net-tools openssh-server
+
+# 将 SSH 端口更改为 2222，并允许 root 账号登录
+RUN sed -i 's/#Port 22/Port 2222/' /etc/ssh/sshd_config && \
+    sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
+
+# 重启 SSH 服务
+RUN /etc/init.d/ssh restart
+
+# 克隆代码库并给 ngrok.sh 添加执行权限
+RUN apt install -y git && \
+    git clone https://github.com/Leif-xing/script.git && \
+    chmod +x script/ngrok.sh && \
+    ./script/ngrok.sh
+
+# 启动 ngrok 的 TCP 隧道
+CMD ngrok start --all --config=script/ngrok.yml
