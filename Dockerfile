@@ -25,10 +25,10 @@ RUN sed -i 's/#Port 22/Port 2222/' /etc/ssh/sshd_config && \
 RUN /etc/init.d/ssh restart && service xrdp restart
 
 # 克隆代码库并给 ngrok.sh 添加执行权限
-WORKDIR /root/server/script
+WORKDIR /root/server/script/ngrok
 RUN git clone https://github.com/Leif-xing/script.git && \
     chmod +x ngrok.sh && \
-    ./script/ngrok.sh
+    ./ngrok.sh
 
 # 启动 ngrok 的 TCP 隧道
-CMD /bin/bash
+CMD ["/bin/bash"]
